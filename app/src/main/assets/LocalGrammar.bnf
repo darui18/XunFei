@@ -1,0 +1,8 @@
+#BNF+IAT 1.0 UTF-8;
+!grammar call;
+!slot <name>;
+!slot <operate>;
+!start <callStart>;
+<callStart>:<name>[往][向]<operate>;
+<name>:白骨精|牛魔王|黑熊精|红孩儿|狐狸精;
+<operate>:左!id(110)|右!id(111)|前进!id(112)|后退!id(113)|前!id(114)|后!id(115)|右转!id(116)|左转!id(117);

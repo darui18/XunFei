@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.desktop_gql8asp.myapplication.WakeActivity">
+
+    <RelativeLayout
+        android:layout_width="368dp"
+        android:layout_height="495dp"
+        tools:layout_editor_absoluteX="8dp"
+        tools:layout_editor_absoluteY="8dp">
+
+        <Switch
+            android:id="@+id/wake_start_sw"
+            android:layout_width="wrap_content"
+            android:layout_height="52dp"
+            android:layout_alignLeft="@+id/wake_radio"
+            android:layout_alignParentBottom="true"
+            android:layout_alignStart="@+id/wake_radio"
+            android:checked="false"
+            tools:layout_editor_absoluteX="93dp"
+            tools:layout_editor_absoluteY="443dp" />
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/wake_start_sw"
+            android:layout_alignEnd="@+id/wake_err_tv"
+            android:layout_alignRight="@+id/wake_err_tv"
+            android:layout_below="@+id/wake_radio"
+            android:layout_toEndOf="@+id/wake_start_sw"
+            android:layout_toRightOf="@+id/wake_start_sw"
+            android:gravity="center"
+            android:text="Start Wake" />
+
+
+        <TextView
+            android:id="@+id/recog_result_tv"
+            android:layout_width="313dp"
+            android:layout_height="80dp"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="22dp"
+            android:background="@drawable/liner"
+            android:fadeScrollbars="true"
+            android:gravity="center"
+            android:scrollbars="vertical"
+            android:text="识别结果"
+            tools:layout_editor_absoluteX="41dp"
+            tools:layout_editor_absoluteY="39dp" />
+
+        <RadioGroup
+            android:id="@+id/wake_radio"
+            android:layout_width="368dp"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/wake_start_sw"
+            android:layout_marginBottom="16dp"
+            android:layout_marginLeft="40dp"
+            android:layout_marginRight="40dp"
+            android:background="@drawable/liner"
+            android:gravity="center"
+            android:weightSum="1"
+            app:layout_constraintBottom_toTopOf="@+id/wake_start_sw"
+            tools:layout_editor_absoluteX="8dp">
+
+            <RadioButton
+                android:id="@+id/wake_cloud_rb"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:text="Cloud" />
+
+            <RadioButton
+                android:id="@+id/wake_local_rb"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                android:layout_weight="0.41"
+                android:checked="true"
+                android:gravity="center"
+                android:text="Local" />
+        </RadioGroup>
+
+        <TextView
+            android:id="@+id/wake_err_tv"
+            android:layout_width="wrap_content"
+            android:layout_height="131dp"
+            android:layout_alignEnd="@+id/recog_result_tv"
+            android:layout_alignLeft="@+id/recog_result_tv"
+            android:layout_alignRight="@+id/recog_result_tv"
+            android:layout_alignStart="@+id/recog_result_tv"
+            android:layout_below="@+id/recog_result_tv"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/liner"
+            android:gravity="center"
+            android:scrollbars="vertical"
+            android:text="唤醒结果" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="70dp"
+            android:layout_alignEnd="@+id/wake_err_tv"
+            android:layout_alignLeft="@+id/wake_err_tv"
+            android:layout_alignRight="@+id/wake_err_tv"
+            android:layout_alignStart="@+id/wake_err_tv"
+            android:layout_below="@+id/wake_err_tv"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/liner"
+            android:gravity="center"
+            android:scrollbars="vertical"
+            android:text="唤醒词：齐天大圣、天蓬元帅、葫芦娃们 \n 命令词：牛魔王、狐狸精、白骨精、红孩儿\n 跑了、向左跑了" />
+
+    </RelativeLayout>
+</android.support.constraint.ConstraintLayout>

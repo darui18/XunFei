@@ -1,0 +1,7 @@
+#ABNF 1.0 UTF-8;
+language zh-CN;
+mode voice;
+root $main;
+$main = $name [往][向] $operate;
+$name = 玉帝|太白金星|哪吒|二郎神;
+$operate = 左|右|前进|后退|前|后|右转|左转;

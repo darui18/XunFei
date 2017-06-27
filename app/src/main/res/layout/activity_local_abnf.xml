@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.desktop_gql8asp.myapplication.CmdRecActivity">
+
+    <RelativeLayout
+        android:layout_width="368dp"
+        android:layout_height="495dp"
+        tools:layout_editor_absoluteX="8dp"
+        tools:layout_editor_absoluteY="8dp">
+
+        <Button
+            android:id="@+id/start_bt"
+            android:layout_width="199dp"
+            android:layout_height="52dp"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:text="Start"
+            tools:layout_editor_absoluteX="93dp"
+            tools:layout_editor_absoluteY="443dp" />
+
+        <TextView
+            android:id="@+id/result_tv"
+            android:layout_width="313dp"
+            android:layout_height="151dp"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="22dp"
+            android:gravity="center"
+            android:text="TextView"
+            android:background="@drawable/liner"
+            android:scrollbars="vertical"
+            tools:layout_editor_absoluteX="41dp"
+            tools:layout_editor_absoluteY="39dp" />
+
+        <RadioGroup
+            android:id="@+id/radio"
+            android:layout_width="368dp"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/start_bt"
+            android:background="@drawable/liner"
+            android:layout_marginBottom="16dp"
+            android:layout_marginLeft="40dp"
+            android:layout_marginRight="40dp"
+            android:gravity="center"
+            android:weightSum="1"
+            app:layout_constraintBottom_toTopOf="@+id/start_bt"
+            tools:layout_editor_absoluteX="8dp">
+
+            <RadioButton
+                android:id="@+id/cloud_rb"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:text="Cloud" />
+
+            <RadioButton
+                android:id="@+id/local_rb"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                android:layout_weight="0.41"
+                android:checked="true"
+                android:gravity="center"
+                android:text="Local" />
+        </RadioGroup>
+
+        <TextView
+            android:id="@+id/show_tv"
+            android:layout_width="wrap_content"
+            android:layout_height="60dp"
+            android:layout_alignLeft="@+id/result_tv"
+            android:layout_alignStart="@+id/result_tv"
+            android:layout_below="@+id/result_tv"
+            android:layout_marginTop="39dp"
+            android:text="show_tv"
+            android:scrollbars="vertical"
+            android:background="@drawable/liner"
+            android:gravity="center"
+            android:layout_alignRight="@+id/result_tv"
+            android:layout_alignEnd="@+id/result_tv" />
+    </RelativeLayout>
+</android.support.constraint.ConstraintLayout>
