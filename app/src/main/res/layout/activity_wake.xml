@@ -115,7 +115,7 @@
             android:background="@drawable/liner"
             android:gravity="center"
             android:scrollbars="vertical"
-            android:text="唤醒词：迎宾机器人 \n 命令词：向左（右，前，后），前进，后退\n" />
+            android:text="唤醒词：迎宾机器人 \n 命令词：向左（右，前，后），前进，后退\n 例如：迎宾机器人向前" />
 
     </RelativeLayout>
 </android.support.constraint.ConstraintLayout>
