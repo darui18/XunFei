@@ -115,7 +115,7 @@
             android:background="@drawable/liner"
             android:gravity="center"
             android:scrollbars="vertical"
-            android:text="唤醒词：齐天大圣、天蓬元帅、葫芦娃们 \n 命令词：牛魔王、狐狸精、白骨精、红孩儿\n 跑了、向左跑了" />
+            android:text="唤醒词：迎宾机器人 \n 命令词：向左（右，前，后），前进，后退\n" />
 
     </RelativeLayout>
 </android.support.constraint.ConstraintLayout>
