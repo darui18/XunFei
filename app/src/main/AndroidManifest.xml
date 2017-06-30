@@ -43,7 +43,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".CmdRecActivity" />
-        <activity android:name=".WakeActivity"></activity>
+        <activity android:name=".WakeActivity" />
+        <activity android:name=".WakeRecActivity"></activity>
     </application>
 
 </manifest>
