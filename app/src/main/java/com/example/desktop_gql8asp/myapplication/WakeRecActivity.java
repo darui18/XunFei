@@ -45,8 +45,8 @@ public class WakeRecActivity extends AppCompatActivity {
     private Toast mToast;
 
     // 本地语法构建路径
-    private String grmPath = Environment.getExternalStorageDirectory()
-            .getAbsolutePath() + "/msc/test";
+    private String mGrmPath = Environment.getExternalStorageDirectory()
+            .getAbsolutePath() + "/msc/speech";
 
     private final String GRAMMAR_TYPE_BNF = "bnf";
     private String mLocalGrammarID;
@@ -61,6 +61,17 @@ public class WakeRecActivity extends AppCompatActivity {
         initView();
         initWakeRecog();
 
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (mSpeechRecognizer != null) {
+            mSpeechRecognizer.destroy();
+        }
+        if (mVoiceWakeuper != null) {
+            mVoiceWakeuper.destroy();
+        }
+        super.onDestroy();
     }
 
     private void initView() {
@@ -87,22 +98,26 @@ public class WakeRecActivity extends AppCompatActivity {
         //buildGrammar 仅在使用本地语法文件时 需要使用
         mSpeechRecognizer.setParameter(SpeechConstant.PARAMS, null);
         // 设置语法构建路径
-        mSpeechRecognizer.setParameter(ResourceUtil.GRM_BUILD_PATH, grmPath);
+        mSpeechRecognizer.setParameter(ResourceUtil.GRM_BUILD_PATH, mGrmPath);
         // 设置资源路径
         mSpeechRecognizer.setParameter(ResourceUtil.ASR_RES_PATH, getResourcePath());
         // 设置引擎类型
         mSpeechRecognizer.setParameter(SpeechConstant.ENGINE_TYPE, SpeechConstant.TYPE_LOCAL);
-        //设置其他属性
+        //不带标点
         mSpeechRecognizer.setParameter(SpeechConstant.ASR_PTT, 0 + "");
+
         mSpeechRecognizer.setParameter(SpeechConstant.TEXT_ENCODING, "utf-8");
+        //设置为命令词模式
+        mSpeechRecognizer.setParameter(SpeechConstant.SUBJECT, "asr");
 
         int res = mSpeechRecognizer.buildGrammar(GRAMMAR_TYPE_BNF, mLocalGrammar, new GrammarListener() {
             @Override
             public void onBuildFinish(String s, SpeechError speechError) {
                 if (speechError == null) {
                     mLocalGrammarID = s;
-                    showTip("本地语法构建成功 ,grammar id = " + s);
+                    mSpeechRecognizer.setParameter(SpeechConstant.LOCAL_GRAMMAR, mLocalGrammarID);
                     startOnShot();
+                    Log.d(TAG, "build local grammar success");
                 } else {
                     showTip("本地语法构建失败 ,SpeechError id = " + speechError.getErrorDescription() + speechError.getErrorCode());
                 }
@@ -115,6 +130,7 @@ public class WakeRecActivity extends AppCompatActivity {
 
 
     private void startOnShot() {
+        Log.d(TAG, "start onshot");
         mVoiceWakeuper = VoiceWakeuper.getWakeuper();
         if (mVoiceWakeuper != null) {
             resultString = "";
@@ -130,6 +146,8 @@ public class WakeRecActivity extends AppCompatActivity {
             mVoiceWakeuper.setParameter(SpeechConstant.IVW_SST, "oneshot");
             // 设置返回结果格式
             mVoiceWakeuper.setParameter(SpeechConstant.RESULT_TYPE, "json");
+            //不带标点
+            mVoiceWakeuper.setParameter(SpeechConstant.ASR_PTT, "0");
             // 设置唤醒录音保存路径，保存最近一分钟的音频
             mVoiceWakeuper.setParameter(SpeechConstant.IVW_AUDIO_PATH, Environment.getExternalStorageDirectory().getPath() + "/msc/ivw.wav");
             mVoiceWakeuper.setParameter(SpeechConstant.AUDIO_FORMAT, "wav");
@@ -138,11 +156,12 @@ public class WakeRecActivity extends AppCompatActivity {
                 mVoiceWakeuper.setParameter(ResourceUtil.ASR_RES_PATH,
                         getResourcePath());
                 // 设置语法构建路径
-                mVoiceWakeuper.setParameter(ResourceUtil.GRM_BUILD_PATH, grmPath);
+                mVoiceWakeuper.setParameter(ResourceUtil.GRM_BUILD_PATH, mGrmPath);
                 // 设置本地识别使用语法id
                 mVoiceWakeuper.setParameter(SpeechConstant.LOCAL_GRAMMAR,
                         mLocalGrammarID);
                 mVoiceWakeuper.startListening(mWakeuperListener);
+                Log.d(TAG, "start  onshot listener");
             } else {
                 showTip("请先构建语法");
             }
@@ -206,10 +225,10 @@ public class WakeRecActivity extends AppCompatActivity {
         @Override
         public void onError(SpeechError error) {
             showTip(error.getPlainDescription(true));
-            if (error.getErrorCode() == ErrorCode.ERROR_NO_MATCH) {
-                if (mVoiceWakeuper != null) {
-                    mVoiceWakeuper.startListening(mWakeuperListener);
-                }
+            if (error.getErrorCode() == ErrorCode.ERROR_NO_MATCH && mVoiceWakeuper != null) {
+                mVoiceWakeuper.startListening(mWakeuperListener);
+            } else {
+                startListening();
             }
         }
 
@@ -230,9 +249,10 @@ public class WakeRecActivity extends AppCompatActivity {
             //开启语音识别监听
             if (isLast == 1) {
                 if (mSpeechRecognizer != null) {
-                    mSpeechRecognizer.startListening(mRecognizerListener);
                     mVoiceWakeuper.cancel();
+                    startListening();
                     startTimer();
+                    Log.d(TAG, "begin speech recognizer");
                 } else {
                     showTip("开启语音继续识别出错");
                 }
@@ -264,12 +284,13 @@ public class WakeRecActivity extends AppCompatActivity {
         public void run() {
             long time = mBeginTime - System.currentTimeMillis();
             if (time > 4 * 1000) {
-                stopListenner();
+                //TODO
+//                stopListener();
             }
         }
     };
 
-    private void stopListenner() {
+    private void stopListener() {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -278,14 +299,23 @@ public class WakeRecActivity extends AppCompatActivity {
                     mTimer.cancel();
                     mTimer = null;
                 }
-                if (mSpeechRecognizer != null) {
-                    mSpeechRecognizer.stopListening();
+                if (mSpeechRecognizer != null && mSpeechRecognizer.isListening()) {
+                    mSpeechRecognizer.cancel();
                 }
-                if (mVoiceWakeuper != null) {
+                if (mVoiceWakeuper != null && !mVoiceWakeuper.isListening()) {
                     mVoiceWakeuper.startListening(mWakeuperListener);
                 }
             }
         });
+    }
+
+    /**
+     * 开始监听
+     */
+    void startListening() {
+        if (mSpeechRecognizer != null && !mSpeechRecognizer.isListening()) {
+            mSpeechRecognizer.startListening(mRecognizerListener);
+        }
     }
 
     /**
@@ -314,6 +344,7 @@ public class WakeRecActivity extends AppCompatActivity {
             } else {
                 Log.d(TAG, "recognizer result : null");
             }
+            startListening();
         }
 
         @Override
@@ -330,10 +361,12 @@ public class WakeRecActivity extends AppCompatActivity {
 
         @Override
         public void onError(final SpeechError error) {
-            stopListenner();
+            //TODO
+//            stopListener();
             showTip("onError Code：" + error.getErrorCode());
             final String errorTip = "onError Code：" + error.getErrorCode();
             showTip(errorTip);
+            startListening();
         }
 
         @Override
