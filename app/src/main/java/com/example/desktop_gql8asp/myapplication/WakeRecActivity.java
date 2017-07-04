@@ -146,6 +146,8 @@ public class WakeRecActivity extends AppCompatActivity {
             mVoiceWakeuper.setParameter(SpeechConstant.IVW_SST, "oneshot");
             // 设置返回结果格式
             mVoiceWakeuper.setParameter(SpeechConstant.RESULT_TYPE, "json");
+            // 设置识别引擎
+            mVoiceWakeuper.setParameter(SpeechConstant.ENGINE_TYPE, SpeechConstant.TYPE_LOCAL);
             //不带标点
             mVoiceWakeuper.setParameter(SpeechConstant.ASR_PTT, "0");
             // 设置唤醒录音保存路径，保存最近一分钟的音频
@@ -250,6 +252,7 @@ public class WakeRecActivity extends AppCompatActivity {
             if (isLast == 1) {
                 if (mSpeechRecognizer != null) {
                     mVoiceWakeuper.cancel();
+                    mTimeOut = false;
                     startListening();
                     startTimer();
                     Log.d(TAG, "begin speech recognizer");
@@ -270,36 +273,58 @@ public class WakeRecActivity extends AppCompatActivity {
      */
 
     private void startTimer() {
-        if (mTimer == null) {
-            mTimer = new Timer();
-            mTimer.schedule(timerTask, 0, 1 * 1000);
-        }
-        mBeginTime = System.currentTimeMillis();
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (mTimer == null) {
+                    mTimer = new Timer();
+                    mStopTimerTask = new StopTimerTask();
+                    mTimer.schedule(mStopTimerTask, 0, 1 * 1000);
+                }
+                mBeginTime = System.currentTimeMillis();
+            }
+        });
     }
 
     Timer mTimer;
+    StopTimerTask mStopTimerTask;
     volatile long mBeginTime;
-    TimerTask timerTask = new TimerTask() {
+    boolean mTimeOut = false;
+
+    /**
+     * 语音识别停止定时器
+     */
+    class StopTimerTask extends TimerTask {
+
         @Override
         public void run() {
             long time = mBeginTime - System.currentTimeMillis();
             if (time > 4 * 1000) {
-                //TODO
-//                stopListener();
+                stopListening();
             }
         }
-    };
+    }
 
-    private void stopListener() {
+    /**
+     * ui线程下停止监听
+     */
+    private void stopListening() {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                mTimeOut = true;
                 mProgressBar.setVisibility(View.INVISIBLE);
+                if (mStopTimerTask != null) {
+                    mStopTimerTask.cancel();
+                    mStopTimerTask = null;
+                }
                 if (mTimer != null) {
                     mTimer.cancel();
                     mTimer = null;
                 }
-                if (mSpeechRecognizer != null && mSpeechRecognizer.isListening()) {
+                //TODO 监听停止不了
+                if (mSpeechRecognizer != null) {
+                    mSpeechRecognizer.stopListening();
                     mSpeechRecognizer.cancel();
                 }
                 if (mVoiceWakeuper != null && !mVoiceWakeuper.isListening()) {
@@ -310,12 +335,18 @@ public class WakeRecActivity extends AppCompatActivity {
     }
 
     /**
-     * 开始监听
+     * ui线程下开始监听
      */
     void startListening() {
-        if (mSpeechRecognizer != null && !mSpeechRecognizer.isListening()) {
-            mSpeechRecognizer.startListening(mRecognizerListener);
-        }
+        showTip("开始监听，请说命令");
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (mSpeechRecognizer != null && !mSpeechRecognizer.isListening() && !mTimeOut) {
+                    mSpeechRecognizer.startListening(mRecognizerListener);
+                }
+            }
+        });
     }
 
     /**
@@ -339,8 +370,8 @@ public class WakeRecActivity extends AppCompatActivity {
                 Log.e("result", text);
                 if (!text.startsWith("【结果】【置信度】") && !text.isEmpty()) {
                     mRecogResultTv.setText(text);
+                    startTimer();
                 }
-                startTimer();
             } else {
                 Log.d(TAG, "recognizer result : null");
             }
@@ -361,8 +392,8 @@ public class WakeRecActivity extends AppCompatActivity {
 
         @Override
         public void onError(final SpeechError error) {
-            //TODO
-//            stopListener();
+            mSpeechRecognizer.cancel();
+            stopListening();
             showTip("onError Code：" + error.getErrorCode());
             final String errorTip = "onError Code：" + error.getErrorCode();
             showTip(errorTip);
