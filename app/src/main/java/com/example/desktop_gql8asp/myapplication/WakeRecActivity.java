@@ -25,8 +25,10 @@ import com.iflytek.cloud.WakeuperListener;
 import com.iflytek.cloud.WakeuperResult;
 import com.iflytek.cloud.util.ResourceUtil;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONTokener;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -343,7 +345,7 @@ public class WakeRecActivity extends AppCompatActivity {
      * ui线程下开始监听
      */
     void startListening() {
-        showTip("开始监听，请说命令");
+//        showTip("开始监听，请说命令");
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -361,7 +363,7 @@ public class WakeRecActivity extends AppCompatActivity {
     RecognizerListener mRecognizerListener = new RecognizerListener() {
         @Override
         public void onVolumeChanged(int volume, byte[] bytes) {
-            showTip("当前正在说话，音量大小：" + volume);
+//            showTip("当前正在说话，音量大小：" + volume);
             Log.e(TAG, "返回音频数据：" + bytes.length);
         }
 
@@ -371,13 +373,16 @@ public class WakeRecActivity extends AppCompatActivity {
             if (null != result && !TextUtils.isEmpty(result.getResultString())) {
                 Log.e(TAG, "recognizer result：" + result.getResultString());
                 String text = "";
-                text = JsonParser.parseGrammarResult(result.getResultString(), SpeechConstant.TYPE_CLOUD);
-//                text = JsonParser.parseIatResult(result.getResultString());
+//                text = JsonParser.parseGrammarResult(result.getResultString(), SpeechConstant.TYPE_CLOUD);
+                text = JsonParser.parseGrammarResult(result.getResultString());
                 // 显示
                 Log.e("result", text);
                 if (!text.startsWith("【结果】【置信度】") && !text.isEmpty()) {
                     mRecogResultTv.setText(text);
-                    startTimer();
+                    if (getCredit(result.getResultString()) > 10) {
+                        Log.e(TAG, "scrod > 10; timer reset");
+                        startTimer();
+                    }
                 }
             } else {
                 Log.e(TAG, "recognizer result : null");
@@ -388,19 +393,20 @@ public class WakeRecActivity extends AppCompatActivity {
         @Override
         public void onEndOfSpeech() {
             // 此回调表示：检测到了语音的尾端点，已经进入识别过程，不再接受语音输入
-            showTip("结束说话");
+//            showTip("结束说话");
         }
 
         @Override
         public void onBeginOfSpeech() {
             // 此回调表示：sdk内部录音机已经准备好了，用户可以开始语音输入
-            showTip("开始说话");
+//            showTip("开始说话");
         }
 
         @Override
         public void onError(final SpeechError error) {
             Log.e(TAG, "RecognizerListening onError" + "onError Code：" + error.getErrorCode());
             if (error.getErrorCode() == ErrorCode.ERROR_NO_MATCH) {
+                mRecogResultTv.setText("无匹配结果");
                 startListening();
             } else {
                 mSpeechRecognizer.cancel();
@@ -441,5 +447,30 @@ public class WakeRecActivity extends AppCompatActivity {
 //		tempBuffer.append(";");
 //		tempBuffer.append(ResourceUtil.generateResourcePath(this, RESOURCE_TYPE.assets, "asr/common_8k.jet"));
         return tempBuffer.toString();
+    }
+
+    private int getCredit(String json) {
+        int scord = -1;
+        Log.d("Speech", json);
+        StringBuffer ret = new StringBuffer();
+        try {
+            JSONTokener tokener = new JSONTokener(json);
+            JSONObject joResult = new JSONObject(tokener);
+
+            JSONArray words = joResult.getJSONArray("ws");
+            for (int i = 0; i < words.length(); i++) {
+                if (words.getJSONObject(i).getString("slot").equals("<operate>")) {
+                    JSONArray items = words.getJSONObject(i).getJSONArray("cw");
+                    for (int j = 0; j < items.length(); j++) {
+                        JSONObject obj = items.getJSONObject(j);
+                        scord = obj.getInt("sc");
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            ret.append("没有匹配结果.");
+        }
+        return scord;
     }
 }
