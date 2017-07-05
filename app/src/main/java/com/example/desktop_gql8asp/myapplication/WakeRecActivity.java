@@ -65,10 +65,12 @@ public class WakeRecActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        stopListening();
         if (mSpeechRecognizer != null) {
             mSpeechRecognizer.destroy();
         }
         if (mVoiceWakeuper != null) {
+            mVoiceWakeuper.cancel();
             mVoiceWakeuper.destroy();
         }
         super.onDestroy();
@@ -117,7 +119,7 @@ public class WakeRecActivity extends AppCompatActivity {
                     mLocalGrammarID = s;
                     mSpeechRecognizer.setParameter(SpeechConstant.LOCAL_GRAMMAR, mLocalGrammarID);
                     startOnShot();
-                    Log.d(TAG, "build local grammar success");
+                    Log.e(TAG, "build local grammar success");
                 } else {
                     showTip("本地语法构建失败 ,SpeechError id = " + speechError.getErrorDescription() + speechError.getErrorCode());
                 }
@@ -130,7 +132,7 @@ public class WakeRecActivity extends AppCompatActivity {
 
 
     private void startOnShot() {
-        Log.d(TAG, "start onshot");
+        Log.e(TAG, "start onshot");
         mVoiceWakeuper = VoiceWakeuper.getWakeuper();
         if (mVoiceWakeuper != null) {
             resultString = "";
@@ -163,7 +165,7 @@ public class WakeRecActivity extends AppCompatActivity {
                 mVoiceWakeuper.setParameter(SpeechConstant.LOCAL_GRAMMAR,
                         mLocalGrammarID);
                 mVoiceWakeuper.startListening(mWakeuperListener);
-                Log.d(TAG, "start  onshot listener");
+                Log.e(TAG, "start  onshot listener");
             } else {
                 showTip("请先构建语法");
             }
@@ -198,7 +200,7 @@ public class WakeRecActivity extends AppCompatActivity {
         @Override
         public void onResult(WakeuperResult result) {
             mProgressBar.setVisibility(View.VISIBLE);
-            Log.d(TAG, "wake recognizer");
+            Log.e(TAG, "wake recognizer");
             try {
                 String text = result.getResultString();
                 JSONObject object;
@@ -242,7 +244,7 @@ public class WakeRecActivity extends AppCompatActivity {
 
         @Override
         public void onEvent(int eventType, int isLast, int arg2, Bundle obj) {
-            Log.d(TAG, "wakeuplistener onEvent eventType:" + eventType + "arg1:" + isLast + "arg2:" + arg2);
+            Log.e(TAG, "wakeuplistener onEvent eventType:" + eventType + "arg1:" + isLast + "arg2:" + arg2);
             // 识别结果
             if (SpeechEvent.EVENT_IVW_RESULT == eventType) {
                 RecognizerResult reslut = ((RecognizerResult) obj.get(SpeechEvent.KEY_EVENT_IVW_RESULT));
@@ -256,7 +258,7 @@ public class WakeRecActivity extends AppCompatActivity {
                     mTimeOut = false;
                     startListening();
                     startTimer();
-                    Log.d(TAG, "begin speech recognizer");
+                    Log.e(TAG, "begin speech recognizer");
                 } else {
                     showTip("开启语音继续识别出错");
                 }
@@ -277,7 +279,7 @@ public class WakeRecActivity extends AppCompatActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                Log.d(TAG, "start timer");
+                Log.e(TAG, "start timer");
                 if (mTimer == null) {
                     mTimer = new Timer();
                     mStopTimerTask = new StopTimerTask();
@@ -300,8 +302,8 @@ public class WakeRecActivity extends AppCompatActivity {
 
         @Override
         public void run() {
-            long time = mBeginTime - System.currentTimeMillis();
-            Log.d(TAG, "stop timerTask time = " + time);
+            long time = System.currentTimeMillis() - mBeginTime;
+            Log.e(TAG, "stop timerTask time = " + time + ";beginTime= " + mBeginTime + " ;currentTime = " + System.currentTimeMillis());
             if (time > 8 * 1000) {
                 stopListening();
             }
@@ -315,7 +317,7 @@ public class WakeRecActivity extends AppCompatActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                Log.d(TAG, "stop listening");
+                Log.e(TAG, "stop listening");
                 mTimeOut = true;
                 mProgressBar.setVisibility(View.INVISIBLE);
                 if (mStopTimerTask != null) {
@@ -345,7 +347,7 @@ public class WakeRecActivity extends AppCompatActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                Log.d(TAG, "start listening");
+                Log.e(TAG, "start listening");
                 if (mSpeechRecognizer != null && !mSpeechRecognizer.isListening() && !mTimeOut) {
                     mSpeechRecognizer.startListening(mRecognizerListener);
                 }
@@ -360,14 +362,14 @@ public class WakeRecActivity extends AppCompatActivity {
         @Override
         public void onVolumeChanged(int volume, byte[] bytes) {
             showTip("当前正在说话，音量大小：" + volume);
-            Log.d(TAG, "返回音频数据：" + bytes.length);
+            Log.e(TAG, "返回音频数据：" + bytes.length);
         }
 
         @Override
         public void onResult(final RecognizerResult result, boolean isLast) {
-            Log.d(TAG, "RecognizerListener onresult");
+            Log.e(TAG, "RecognizerListener onresult");
             if (null != result && !TextUtils.isEmpty(result.getResultString())) {
-                Log.d(TAG, "recognizer result：" + result.getResultString());
+                Log.e(TAG, "recognizer result：" + result.getResultString());
                 String text = "";
                 text = JsonParser.parseGrammarResult(result.getResultString(), SpeechConstant.TYPE_CLOUD);
 //                text = JsonParser.parseIatResult(result.getResultString());
@@ -378,7 +380,7 @@ public class WakeRecActivity extends AppCompatActivity {
                     startTimer();
                 }
             } else {
-                Log.d(TAG, "recognizer result : null");
+                Log.e(TAG, "recognizer result : null");
             }
             startListening();
         }
@@ -397,13 +399,16 @@ public class WakeRecActivity extends AppCompatActivity {
 
         @Override
         public void onError(final SpeechError error) {
-            Log.d(TAG, "RecognizerListening onError");
-            mSpeechRecognizer.cancel();
-            stopListening();
-            showTip("onError Code：" + error.getErrorCode());
-            final String errorTip = "onError Code：" + error.getErrorCode();
-            showTip(errorTip);
-            startListening();
+            Log.e(TAG, "RecognizerListening onError" + "onError Code：" + error.getErrorCode());
+            if (error.getErrorCode() == ErrorCode.ERROR_NO_MATCH) {
+                startListening();
+            } else {
+                mSpeechRecognizer.cancel();
+                stopListening();
+                final String errorTip = "onError Code：" + error.getErrorCode();
+                showTip(errorTip);
+                startListening();
+            }
         }
 
         @Override
@@ -412,7 +417,7 @@ public class WakeRecActivity extends AppCompatActivity {
             // 若使用本地能力，会话id为null
             //	if (SpeechEvent.EVENT_SESSION_ID == eventType) {
             //		String sid = obj.getString(SpeechEvent.KEY_EVENT_SESSION_ID);
-            //		Log.d(TAG, "session id =" + sid);
+            //		Log.e(TAG, "session id =" + sid);
             //	}
         }
     };
