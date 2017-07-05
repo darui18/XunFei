@@ -35,7 +35,7 @@ import static com.example.desktop_gql8asp.myapplication.com.example.utils.FucUti
 
 public class WakeRecActivity extends AppCompatActivity {
 
-    private static final String TAG = "WakeRec";
+    private static final String TAG = "WakeRec1002";
     TextView mRecogResultTv;
     TextView mRecogStatusTv;
     ProgressBar mProgressBar;
@@ -198,6 +198,7 @@ public class WakeRecActivity extends AppCompatActivity {
         @Override
         public void onResult(WakeuperResult result) {
             mProgressBar.setVisibility(View.VISIBLE);
+            Log.d(TAG, "wake recognizer");
             try {
                 String text = result.getResultString();
                 JSONObject object;
@@ -241,7 +242,7 @@ public class WakeRecActivity extends AppCompatActivity {
 
         @Override
         public void onEvent(int eventType, int isLast, int arg2, Bundle obj) {
-            Log.d(TAG, "eventType:" + eventType + "arg1:" + isLast + "arg2:" + arg2);
+            Log.d(TAG, "wakeuplistener onEvent eventType:" + eventType + "arg1:" + isLast + "arg2:" + arg2);
             // 识别结果
             if (SpeechEvent.EVENT_IVW_RESULT == eventType) {
                 RecognizerResult reslut = ((RecognizerResult) obj.get(SpeechEvent.KEY_EVENT_IVW_RESULT));
@@ -276,6 +277,7 @@ public class WakeRecActivity extends AppCompatActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                Log.d(TAG, "start timer");
                 if (mTimer == null) {
                     mTimer = new Timer();
                     mStopTimerTask = new StopTimerTask();
@@ -299,7 +301,8 @@ public class WakeRecActivity extends AppCompatActivity {
         @Override
         public void run() {
             long time = mBeginTime - System.currentTimeMillis();
-            if (time > 4 * 1000) {
+            Log.d(TAG, "stop timerTask time = " + time);
+            if (time > 8 * 1000) {
                 stopListening();
             }
         }
@@ -312,6 +315,7 @@ public class WakeRecActivity extends AppCompatActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                Log.d(TAG, "stop listening");
                 mTimeOut = true;
                 mProgressBar.setVisibility(View.INVISIBLE);
                 if (mStopTimerTask != null) {
@@ -322,7 +326,6 @@ public class WakeRecActivity extends AppCompatActivity {
                     mTimer.cancel();
                     mTimer = null;
                 }
-                //TODO 监听停止不了
                 if (mSpeechRecognizer != null) {
                     mSpeechRecognizer.stopListening();
                     mSpeechRecognizer.cancel();
@@ -342,6 +345,7 @@ public class WakeRecActivity extends AppCompatActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                Log.d(TAG, "start listening");
                 if (mSpeechRecognizer != null && !mSpeechRecognizer.isListening() && !mTimeOut) {
                     mSpeechRecognizer.startListening(mRecognizerListener);
                 }
@@ -361,6 +365,7 @@ public class WakeRecActivity extends AppCompatActivity {
 
         @Override
         public void onResult(final RecognizerResult result, boolean isLast) {
+            Log.d(TAG, "RecognizerListener onresult");
             if (null != result && !TextUtils.isEmpty(result.getResultString())) {
                 Log.d(TAG, "recognizer result：" + result.getResultString());
                 String text = "";
@@ -392,6 +397,7 @@ public class WakeRecActivity extends AppCompatActivity {
 
         @Override
         public void onError(final SpeechError error) {
+            Log.d(TAG, "RecognizerListening onError");
             mSpeechRecognizer.cancel();
             stopListening();
             showTip("onError Code：" + error.getErrorCode());
